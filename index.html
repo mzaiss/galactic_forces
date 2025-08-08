@@ -571,11 +571,21 @@
           Math.pow(touch2.clientY - touch1.clientY, 2)
         );
         
-        if (initialDistance > 0) {
-          const scale = currentDistance / initialDistance;
-          cameraZoom *= scale;
-          cameraZoom = Math.max(0.1, Math.min(5.0, cameraZoom)); // Limit zoom range
-        }
+                 if (initialDistance > 0) {
+           const scale = currentDistance / initialDistance;
+           const oldZoom = cameraZoom;
+           cameraZoom *= scale;
+           cameraZoom = Math.max(0.1, Math.min(5.0, cameraZoom)); // Limit zoom range
+           
+           // Calculate galaxy center
+           const galaxyCenterX = canvas.width / 2;
+           const galaxyCenterY = canvas.height / 2 + canvas.height * 0.2;
+           
+           // Adjust camera position to keep galaxy center fixed
+           const zoomRatio = cameraZoom / oldZoom;
+           cameraX = galaxyCenterX - (galaxyCenterX - cameraX) * zoomRatio;
+           cameraY = galaxyCenterY - (galaxyCenterY - cameraY) * zoomRatio;
+         }
       }
     });
     
