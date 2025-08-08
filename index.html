@@ -218,7 +218,7 @@
      let timeScale = 3.0;
      let planetMass = 1.0;
      let angularSpeed = 1.0;
-           let forceLaw = '1/r';
+           let forceLaw = 'log';
       let isPaused = false;
       let simulationTime = 0;
       let showTrajectories = false;
@@ -409,12 +409,17 @@
         }
       }
     
-         // Draw planets
+         // Draw planets with camera transform
      function drawPlanets() {
        // Only clear canvas if trajectories are disabled
        if (!showTrajectories) {
          ctx.clearRect(0, 0, canvas.width, canvas.height);
        }
+       
+       // Apply camera transform
+       ctx.save();
+       ctx.translate(cameraX, cameraY);
+       ctx.scale(cameraZoom, cameraZoom);
        
        // Draw planets with fade effect for trajectories
        for (let planet of planets) {
@@ -427,9 +432,10 @@
          ctx.beginPath();
          ctx.arc(planet.x, planet.y, planet.radius, 0, Math.PI * 2);
          ctx.fill();
-         
-                  // Velocity vectors removed for cleaner display
        }
+       
+       // Restore camera transform
+       ctx.restore();
      }
     
     
@@ -516,34 +522,60 @@
       resetUniverse();
     });
     
-    // Touch controls for mobile (pan only)
+    // Camera/viewport system for pan and zoom
+    let cameraX = 0;
+    let cameraY = 0;
+    let cameraZoom = 1.0;
     let touchStartX = 0, touchStartY = 0;
     let isTouching = false;
+    let initialDistance = 0;
     
     canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      const touch = e.touches[0];
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
-      isTouching = true;
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        isTouching = true;
+      } else if (e.touches.length === 2) {
+        // Pinch to zoom
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        initialDistance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+          Math.pow(touch2.clientY - touch1.clientY, 2)
+        );
+      }
     });
     
     canvas.addEventListener('touchmove', (e) => {
       e.preventDefault();
       
-      if (isTouching) {
+      if (e.touches.length === 1 && isTouching) {
         const touch = e.touches[0];
         const deltaX = touch.clientX - touchStartX;
         const deltaY = touch.clientY - touchStartY;
         
-        // Pan the view by moving all planets
-        for (let planet of planets) {
-          planet.x += deltaX * 0.1; // 10x more movement
-          planet.y += deltaY * 0.1; // 10x more movement
-        }
+        // Pan the camera view
+        cameraX += deltaX * 0.1;
+        cameraY += deltaY * 0.1;
         
         touchStartX = touch.clientX;
         touchStartY = touch.clientY;
+      } else if (e.touches.length === 2) {
+        // Pinch to zoom
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const currentDistance = Math.sqrt(
+          Math.pow(touch2.clientX - touch1.clientX, 2) +
+          Math.pow(touch2.clientY - touch1.clientY, 2)
+        );
+        
+        if (initialDistance > 0) {
+          const scale = currentDistance / initialDistance;
+          cameraZoom *= scale;
+          cameraZoom = Math.max(0.1, Math.min(5.0, cameraZoom)); // Limit zoom range
+        }
       }
     });
     
