@@ -85,9 +85,22 @@
     }
     
     .control-group {
-      margin: 10px 0;
+      margin: 8px 0;
       display: flex;
       flex-direction: column;
+    }
+    
+    .control-row {
+      display: flex;
+      gap: 15px;
+      align-items: flex-start;
+    }
+    
+    .control-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
     
     .button-row {
@@ -144,37 +157,43 @@
     <h3>Universe Controls</h3>
     <div class="control-content">
     
-    <div class="control-group">
-      <label>Force Law:</label>
-             <select id="forceLaw">
-         <option value="1/r3">1/r³ (Strong Decay)</option>
-         <option value="1/r2">1/r² (Gravity-like)</option>
-         <option value="1/r">1/r (Coulomb-like)</option>
-         <option value="log" selected>log(r) (Logarithmic)</option>
-         <option value="sqrt">√r (Square Root)</option>
-         <option value="r">r (Linear)</option>
-         <option value="r2">r² (Quadratic)</option>
-         <option value="r3">r³ (Cubic)</option>
-       </select>
-    </div>
-    
+        <div class="control-row">
+      <div class="control-column">
         <div class="control-group">
-      <label>Force Constant (G):</label>
-      <input type="range" id="gravityConst" min="0.1" max="5" step="0.1" value="1">
-      <span id="gravityValue">1.0</span>
-    </div>
-    
-    <div class="control-group">
-      <label>Time Scale:</label>
-      <input type="range" id="timeScale" min="0.1" max="30" step="0.1" value="4">
-      <span id="timeValue">4.0</span>
-    </div>
-     
-           <div class="control-group">
-        <label>Initial Angular Momentum:</label>
-        <input type="range" id="angularSpeed" min="0" max="10" step="0.1" value="0.8">
-        <span id="angularValue">0.8</span>
+          <label>Force Law:</label>
+          <select id="forceLaw">
+            <option value="1/r3">1/r³ (Strong Decay)</option>
+            <option value="1/r2">1/r² (Gravity-like)</option>
+            <option value="1/r">1/r (Coulomb-like)</option>
+            <option value="log" selected>log(r) (Logarithmic)</option>
+            <option value="sqrt">√r (Square Root)</option>
+            <option value="r">r (Linear)</option>
+            <option value="r2">r² (Quadratic)</option>
+            <option value="r3">r³ (Cubic)</option>
+          </select>
+        </div>
+        
+        <div class="control-group">
+          <label>Force Constant (G):</label>
+          <input type="range" id="gravityConst" min="0.1" max="5" step="0.1" value="1">
+          <span id="gravityValue">1.0</span>
+        </div>
       </div>
+      
+      <div class="control-column">
+        <div class="control-group">
+          <label>Time Scale:</label>
+          <input type="range" id="timeScale" min="0.1" max="30" step="0.1" value="3">
+          <span id="timeValue">3.0</span>
+        </div>
+        
+        <div class="control-group">
+          <label>Initial Angular Momentum:</label>
+                  <input type="range" id="angularSpeed" min="0" max="10" step="0.1" value="1.0">
+        <span id="angularValue">1.0</span>
+        </div>
+      </div>
+    </div>
      
                 <div class="button-row">
        <button class="button" onclick="resetUniverse()">Reset</button>
@@ -196,28 +215,28 @@
     
          // Universe parameters
      let G = 1.0;
-     let timeScale = 4.0;
+     let timeScale = 3.0;
      let planetMass = 1.0;
-     let angularSpeed = 0.8;
+     let angularSpeed = 1.0;
            let forceLaw = '1/r';
       let isPaused = false;
       let simulationTime = 0;
       let showTrajectories = false;
     
-         // Planet grid - optimized for mobile
-     const gridSize = window.innerWidth < 768 ? 12 : 20; // Fewer planets on mobile
-     const planetSpacing = window.innerWidth < 768 ? 25 : 30;
+         // Planet grid
+     const gridSize = 20; // Always 20 planets
+     const planetSpacing = 30;
     const planets = [];
     
          // Initialize planets in a grid
      function initializePlanets() {
        planets.length = 0;
        const startX = (canvas.width - (gridSize - 1) * planetSpacing) / 2;
-       const startY = (canvas.height - (gridSize - 1) * planetSpacing) / 2;
+       const startY = (canvas.height - (gridSize - 1) * planetSpacing) / 2 + canvas.height * 0.2; // Move center 20% down
        
-       // Calculate center of the universe
+       // Calculate center of the universe (moved 20% down)
        const centerX = canvas.width / 2;
-       const centerY = canvas.height / 2;
+       const centerY = canvas.height / 2 + canvas.height * 0.2;
        
        for (let i = 0; i < gridSize; i++) {
          for (let j = 0; j < gridSize; j++) {
@@ -492,45 +511,26 @@
     window.addEventListener('resize', () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      // Update grid size for mobile
-      if (window.innerWidth < 768) {
-        gridSize = 12;
-        planetSpacing = 25;
-      } else {
-        gridSize = 20;
-        planetSpacing = 30;
-      }
+      // Grid size is always 20 planets
       resetUniverse();
     });
     
-    // Touch controls for mobile
+    // Touch controls for mobile (pan only)
     let touchStartX = 0, touchStartY = 0;
     let isTouching = false;
-    let initialDistance = 0;
-    let currentScale = 1.0;
     
     canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      if (e.touches.length === 1) {
-        const touch = e.touches[0];
-        touchStartX = touch.clientX;
-        touchStartY = touch.clientY;
-        isTouching = true;
-      } else if (e.touches.length === 2) {
-        // Pinch to zoom
-        const touch1 = e.touches[0];
-        const touch2 = e.touches[1];
-        initialDistance = Math.sqrt(
-          Math.pow(touch2.clientX - touch1.clientX, 2) +
-          Math.pow(touch2.clientY - touch1.clientY, 2)
-        );
-      }
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      isTouching = true;
     });
     
     canvas.addEventListener('touchmove', (e) => {
       e.preventDefault();
       
-      if (e.touches.length === 1 && isTouching) {
+      if (isTouching) {
         const touch = e.touches[0];
         const deltaX = touch.clientX - touchStartX;
         const deltaY = touch.clientY - touchStartY;
@@ -543,26 +543,6 @@
         
         touchStartX = touch.clientX;
         touchStartY = touch.clientY;
-      } else if (e.touches.length === 2) {
-        // Pinch to zoom
-        const touch1 = e.touches[0];
-        const touch2 = e.touches[1];
-        const currentDistance = Math.sqrt(
-          Math.pow(touch2.clientX - touch1.clientX, 2) +
-          Math.pow(touch2.clientY - touch1.clientY, 2)
-        );
-        
-        if (initialDistance > 0) {
-          const scale = currentDistance / initialDistance;
-          const scaleChange = scale - 1;
-          
-          // Zoom by scaling planet positions and sizes
-          for (let planet of planets) {
-            planet.x += (planet.x - canvas.width/2) * scaleChange * 0.01;
-            planet.y += (planet.y - canvas.height/2) * scaleChange * 0.01;
-            planet.radius = Math.max(1, planet.radius + scaleChange * 0.5);
-          }
-        }
       }
     });
     
