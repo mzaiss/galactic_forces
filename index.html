@@ -223,9 +223,9 @@
       let simulationTime = 0;
       let showTrajectories = false;
     
-         // Planet grid
+         // Planet grid - adjust spacing for mobile
      const gridSize = 20; // Always 20 planets
-     const planetSpacing = 30;
+     const planetSpacing = window.innerWidth < 768 ? 20 : 30; // Smaller spacing on mobile
     const planets = [];
     
          // Initialize planets in a grid
@@ -511,7 +511,8 @@
     window.addEventListener('resize', () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      // Grid size is always 20 planets
+      // Update spacing for mobile
+      planetSpacing = window.innerWidth < 768 ? 20 : 30;
       resetUniverse();
     });
     
@@ -537,8 +538,8 @@
         
         // Pan the view by moving all planets
         for (let planet of planets) {
-          planet.x += deltaX * 0.01;
-          planet.y += deltaY * 0.01;
+          planet.x += deltaX * 0.1; // 10x more movement
+          planet.y += deltaY * 0.1; // 10x more movement
         }
         
         touchStartX = touch.clientX;
