@@ -159,25 +159,13 @@
     </div>
     
     <div class="control-group">
-      <label>Gravity Constant (G):</label>
-      <input type="range" id="gravityConst" min="0.1" max="5" step="0.1" value="1">
-      <span id="gravityValue">1.0</span>
+      <label>Time Scale:</label>
+      <input type="range" id="timeScale" min="0.1" max="30" step="0.1" value="1">
+      <span id="timeValue">1.0</span>
     </div>
-    
-         <div class="control-group">
-       <label>Time Scale:</label>
-       <input type="range" id="timeScale" min="0.1" max="30" step="0.1" value="1">
-       <span id="timeValue">1.0</span>
-     </div>
-    
-         <div class="control-group">
-       <label>Planet Mass:</label>
-       <input type="range" id="planetMass" min="0.5" max="3" step="0.1" value="1">
-       <span id="massValue">1.0</span>
-     </div>
      
            <div class="control-group">
-        <label>Angular Momentum:</label>
+        <label>Initial Angular Momentum:</label>
         <input type="range" id="angularSpeed" min="0" max="10" step="0.1" value="0.5">
         <span id="angularValue">0.5</span>
       </div>
@@ -441,43 +429,23 @@
       forceLaw = e.target.value;
     });
     
-    document.getElementById('gravityConst').addEventListener('input', (e) => {
-      G = parseFloat(e.target.value);
-      document.getElementById('gravityValue').textContent = G.toFixed(1);
-    });
-    
     document.getElementById('timeScale').addEventListener('input', (e) => {
       timeScale = parseFloat(e.target.value);
       document.getElementById('timeValue').textContent = timeScale.toFixed(1);
     });
     
-         document.getElementById('planetMass').addEventListener('input', (e) => {
-       planetMass = parseFloat(e.target.value);
-       document.getElementById('massValue').textContent = planetMass.toFixed(1);
-       // Update all planet masses
-       for (let planet of planets) {
-         planet.mass = planetMass;
-       }
-     });
-    
                    function resetUniverse() {
         // Read current values from UI controls
         angularSpeed = parseFloat(document.getElementById('angularSpeed').value);
-        planetMass = parseFloat(document.getElementById('planetMass').value);
-        G = parseFloat(document.getElementById('gravityConst').value);
         timeScale = parseFloat(document.getElementById('timeScale').value);
         forceLaw = document.getElementById('forceLaw').value;
         
         // Update display values
         document.getElementById('angularValue').textContent = angularSpeed.toFixed(1);
-        document.getElementById('massValue').textContent = planetMass.toFixed(1);
-        document.getElementById('gravityValue').textContent = G.toFixed(1);
         document.getElementById('timeValue').textContent = timeScale.toFixed(1);
         
         initializePlanets();
         simulationTime = 0;
-        
-        
       }
     
     function togglePause() {
