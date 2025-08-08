@@ -150,7 +150,7 @@
          <option value="1/r3">1/r³ (Strong Decay)</option>
          <option value="1/r2">1/r² (Gravity-like)</option>
          <option value="1/r">1/r (Coulomb-like)</option>
-         <option value="log">log(r) (Logarithmic)</option>
+         <option value="log" selected>log(r) (Logarithmic)</option>
          <option value="sqrt">√r (Square Root)</option>
          <option value="r">r (Linear)</option>
          <option value="r2">r² (Quadratic)</option>
@@ -158,16 +158,22 @@
        </select>
     </div>
     
+        <div class="control-group">
+      <label>Force Constant (G):</label>
+      <input type="range" id="gravityConst" min="0.1" max="5" step="0.1" value="1">
+      <span id="gravityValue">1.0</span>
+    </div>
+    
     <div class="control-group">
       <label>Time Scale:</label>
-      <input type="range" id="timeScale" min="0.1" max="30" step="0.1" value="1">
-      <span id="timeValue">1.0</span>
+      <input type="range" id="timeScale" min="0.1" max="30" step="0.1" value="4">
+      <span id="timeValue">4.0</span>
     </div>
      
            <div class="control-group">
         <label>Initial Angular Momentum:</label>
-        <input type="range" id="angularSpeed" min="0" max="10" step="0.1" value="0.5">
-        <span id="angularValue">0.5</span>
+        <input type="range" id="angularSpeed" min="0" max="10" step="0.1" value="0.8">
+        <span id="angularValue">0.8</span>
       </div>
      
                 <div class="button-row">
@@ -190,9 +196,9 @@
     
          // Universe parameters
      let G = 1.0;
-     let timeScale = 1.0;
+     let timeScale = 4.0;
      let planetMass = 1.0;
-     let angularSpeed = 0.5;
+     let angularSpeed = 0.8;
            let forceLaw = '1/r';
       let isPaused = false;
       let simulationTime = 0;
@@ -232,12 +238,12 @@
               vy = (dx / distance) * angularSpeed * distance * 0.01;
             }
            
-                       // Calculate color based on initial distance from center (radial symmetry)
+                      // Calculate color based on initial distance from center (radial symmetry)
             const maxDistance = Math.sqrt((canvas.width/2) * (canvas.width/2) + (canvas.height/2) * (canvas.height/2));
             const initialDistance = distance; // Store the initial distance
             const colorHue = (initialDistance / maxDistance) * 360; // Hue based on initial distance
-            const colorSaturation = 70 + (initialDistance / maxDistance) * 20; // Saturation increases with initial distance
-            const colorLightness = 60 - (initialDistance / maxDistance) * 20; // Brightness decreases with initial distance
+            const colorSaturation = 100; // Saturation increases with initial distance
+            const colorLightness = 50 - (initialDistance / maxDistance) * 20; // Brightness decreases with initial distance
             
             planets.push({
               x: x,
@@ -297,7 +303,7 @@
             if (r > 0.1) { // Avoid division by zero
               const cutoffDistance = planets[0].radius * 4;
               if (r > cutoffDistance) { // Only apply force if distance > radius*2
-                totalForceOnFirst += G * calculateForce(r, forceLaw);
+                totalForceOnFirst += 1.0 * calculateForce(r, forceLaw); // Use G=1 for normalization
               }
             }
           }
@@ -389,21 +395,6 @@
        // Only clear canvas if trajectories are disabled
        if (!showTrajectories) {
          ctx.clearRect(0, 0, canvas.width, canvas.height);
-         
-         // Draw grid lines (faint)
-         ctx.strokeStyle = 'rgba(100,100,255,0.1)';
-         ctx.lineWidth = 1;
-         for (let i = 0; i <= gridSize; i++) {
-           const pos = i * planetSpacing;
-           ctx.beginPath();
-           ctx.moveTo(pos, 0);
-           ctx.lineTo(pos, canvas.height);
-           ctx.stroke();
-           ctx.beginPath();
-           ctx.moveTo(0, pos);
-           ctx.lineTo(canvas.width, pos);
-           ctx.stroke();
-         }
        }
        
        // Draw planets with fade effect for trajectories
@@ -429,19 +420,31 @@
       forceLaw = e.target.value;
     });
     
+    document.getElementById('gravityConst').addEventListener('input', (e) => {
+      G = parseFloat(e.target.value);
+      document.getElementById('gravityValue').textContent = G.toFixed(1);
+    });
+    
     document.getElementById('timeScale').addEventListener('input', (e) => {
       timeScale = parseFloat(e.target.value);
       document.getElementById('timeValue').textContent = timeScale.toFixed(1);
     });
     
+    document.getElementById('angularSpeed').addEventListener('input', (e) => {
+      angularSpeed = parseFloat(e.target.value);
+      document.getElementById('angularValue').textContent = angularSpeed.toFixed(1);
+    });
+    
                    function resetUniverse() {
         // Read current values from UI controls
         angularSpeed = parseFloat(document.getElementById('angularSpeed').value);
+        G = parseFloat(document.getElementById('gravityConst').value);
         timeScale = parseFloat(document.getElementById('timeScale').value);
         forceLaw = document.getElementById('forceLaw').value;
         
         // Update display values
         document.getElementById('angularValue').textContent = angularSpeed.toFixed(1);
+        document.getElementById('gravityValue').textContent = G.toFixed(1);
         document.getElementById('timeValue').textContent = timeScale.toFixed(1);
         
         initializePlanets();
