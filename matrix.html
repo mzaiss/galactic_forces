@@ -142,15 +142,16 @@
        }
      }
     
-                                                                               .grid-container {
-         display: grid;
-         grid-template-columns: repeat(3, 1fr);
-         gap: 0px;
-         max-width: 1200px;
-         margin: 0 auto;
-         border: 1px solid #222244;
-         padding: 0px;
-       }
+                                                                                                                                                                                                                                                                                                                               .grid-container {
+           display: grid;
+           grid-template-columns: repeat(3, 1fr);
+           gap: 0px;
+           max-width: 1200px;
+           margin: 0 auto;
+           margin-top: 120px;
+           border: 1px solid #222244;
+           padding: 0px;
+         }
      
                                                                                        .universe-cell {
           display: flex;
@@ -163,13 +164,13 @@
           aspect-ratio: 1;
         }
      
-     .universe-title {
-       font-size: 12px;
-       font-weight: bold;
-       color: #88aaff;
-       margin-bottom: 5px;
-       text-align: center;
-     }
+           .universe-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #88aaff;
+        margin-bottom: 5px;
+        text-align: center;
+      }
      
            .universe-canvas {
         /* No border radius */
@@ -181,9 +182,9 @@
          gap: 0px;
        }
        
-       .universe-title {
-         font-size: 10px;
-       }
+               .universe-title {
+          font-size: 16px;
+        }
            }
       
       .copyright {
@@ -212,33 +213,33 @@
      <h3>Matrix Controls</h3>
      <div class="control-content">
        <div class="control-row">
-         <div class="control-column">
-           <div class="control-group">
-             <label>Force Constant (G):</label>
-             <input type="range" id="gravityConst" min="0.1" max="5" step="0.1" value="1">
-             <span id="gravityValue">1.0</span>
-           </div>
-         </div>
-         
                    <div class="control-column">
             <div class="control-group">
-              <label>Time Scale:</label>
-              <input type="range" id="timeScale" min="0.1" max="30" step="0.1" value="1">
-              <span id="timeValue">1.0</span>
+              <label>Force Constant (G):</label>
+              <input type="range" id="gravityConst" min="0.1" max="5" step="0.1" value="1">
+              <span id="gravityValue">1.0</span>
             </div>
             
-            <div class="control-group">
-              <label>Initial Angular Momentum:</label>
-              <input type="range" id="angularSpeed" min="0" max="10" step="0.1" value="1.0">
-              <span id="angularValue">1.0</span>
-            </div>
-            
-            <div class="control-group">
-              <label>Number of Planets:</label>
-              <input type="range" id="planetCount" min="4" max="20" step="1" value="12">
-              <span id="planetCountValue">12</span>
-            </div>
+                         <div class="control-group">
+               <label>Planets per Side (N×N):</label>
+               <input type="range" id="planetCount" min="4" max="20" step="1" value="12">
+               <span id="planetCountValue">12×12 (144)</span>
+             </div>
           </div>
+          
+                    <div class="control-column">
+             <div class="control-group">
+               <label>Time Scale:</label>
+               <input type="range" id="timeScale" min="0.1" max="30" step="0.1" value="1">
+               <span id="timeValue">1.0</span>
+             </div>
+             
+             <div class="control-group">
+               <label>Initial Angular Momentum:</label>
+               <input type="range" id="angularSpeed" min="0" max="10" step="0.1" value="1.0">
+               <span id="angularValue">1.0</span>
+             </div>
+           </div>
        </div>
        
        <div class="button-row">
@@ -288,9 +289,9 @@
             </div>
    </div>
    
-   <div class="copyright">
-     © Moritz Zaiss 2025, <a href="https://github.com/mzaiss/galactic_forces" target="_blank">https://github.com/mzaiss/galactic_forces</a> | <a href="index.html">Single View</a>
-   </div>
+                               <div class="copyright">
+        © M.Zaiss'25, <a href="https://github.com/mzaiss/galactic_forces" target="_blank">github.com/mzaiss/galactic_forces</a> | <a href="index.html">1x1</a>
+      </div>
  
        <script>
                     // Global parameters (affect all universes)
@@ -299,8 +300,9 @@
        const planetMass = 1.0;
                let angularSpeed = 1.0;
         let isPaused = false;
-        let gridSize = 12; // Smaller grid for matrix view
-        const planetSpacing = 20;
+                 let gridSize = 12; // Smaller grid for matrix view
+         let planetCount = 12; // Number of planets to display
+         const planetSpacing = 20;
     
                                        // Force laws
        const forceLaws = [
@@ -359,10 +361,13 @@
        const centerX = canvas.width / 2;
        const centerY = canvas.height / 2;
       
-      for (let i = 0; i < gridSize; i++) {
-        for (let j = 0; j < gridSize; j++) {
-          const x = startX + i * planetSpacing;
-          const y = startY + j * planetSpacing;
+             // Calculate spacing to fill the same grid area with different number of planets
+       const spacing = (gridSize - 1) * planetSpacing / (planetCount - 1);
+       
+       for (let i = 0; i < planetCount; i++) {
+         for (let j = 0; j < planetCount; j++) {
+           const x = startX + i * spacing;
+           const y = startY + j * spacing;
           
           // Calculate distance from center
           const dx = x - centerX;
@@ -597,10 +602,11 @@
         document.getElementById('angularValue').textContent = angularSpeed.toFixed(1);
       });
       
-      document.getElementById('planetCount').addEventListener('input', (e) => {
-        gridSize = parseInt(e.target.value);
-        document.getElementById('planetCountValue').textContent = gridSize;
-      });
+             document.getElementById('planetCount').addEventListener('input', (e) => {
+         planetCount = parseInt(e.target.value);
+         const totalPlanets = planetCount * planetCount;
+         document.getElementById('planetCountValue').textContent = `${planetCount}×${planetCount} (${totalPlanets})`;
+       });
      
      // Start animation
      animate();
