@@ -289,20 +289,23 @@
             </div>
    </div>
    
-                               <div class="copyright">
-        © M.Zaiss'25, <a href="https://github.com/mzaiss/galactic_forces" target="_blank">github.com/mzaiss/galactic_forces</a> | <a href="index.html">1x1</a>
-      </div>
+               <div class="copyright">
+       © M.Zaiss'25, <a href="https://github.com/mzaiss/galactic_forces" target="_blank">github.com/mzaiss/galactic_forces</a> | <a href="index.html">1x1</a>
+     </div>
  
        <script>
-                    // Global parameters (affect all universes)
-       let G = 1.0;
-       let timeScale = 1.0;
-       const planetMass = 1.0;
-               let angularSpeed = 1.0;
-        let isPaused = false;
-                 let gridSize = 12; // Smaller grid for matrix view
-         let planetCount = 12; // Number of planets to display
-         const planetSpacing = 20;
+                         // Global parameters (affect all universes)
+     let G = 1.0;
+     let timeScale = 1.0;
+     const planetMass = 1.0;
+     let angularSpeed = 1.0;
+     let isPaused = false;
+     let gridSize = 12; // Smaller grid for matrix view
+     let planetCount = 12; // Number of planets to display
+     const planetSpacing = 20;
+     
+     // Integration method flag: true = Forest-Ruth (4th order), false = Leapfrog (2nd order)
+     const useForestRuth = true;
     
                                        // Force laws
        const forceLaws = [
@@ -311,8 +314,12 @@
          'r', 'r2', 'r3'
        ];
     
-    // Universe data
-    const universes = [];
+         // Universe data
+     const universes = [];
+     
+     // Forest-Ruth 4th order symplectic integrator coefficients
+     const w1 = 1 / (2 - Math.pow(2, 1/3));  // ≈ 1.351207
+     const w0 = 1 - 2*w1;                     // ≈ -1.702414
     
     // Calculate force based on selected law
     function calculateForce(r, forceLaw) {
@@ -396,7 +403,7 @@
             vx: vx,
             vy: vy,
             mass: planetMass,
-            radius: 2, // Smaller radius for matrix view
+            radius: 3.5, // Smaller radius for matrix view
             initialDistance: initialDistance,
             color: `hsl(${colorHue}, ${colorSaturation}%, ${colorLightness}%)`
           });
@@ -406,11 +413,43 @@
       return { canvas, ctx, planets, forceLaw };
     }
     
-    // Update planet physics using Leapfrog algorithm
-    function updatePlanets(universe, dt) {
-      const { planets, forceLaw } = universe;
-      const dt_scaled = dt * timeScale;
-      const dt_half = dt_scaled * 0.5;
+         // Calculate forces for all planets
+     function calculateForces(planets, forceLaw, G_normalized) {
+       const forces = [];
+       for (let i = 0; i < planets.length; i++) {
+         let fx = 0, fy = 0;
+         const planet_i = planets[i];
+         
+         for (let j = 0; j < planets.length; j++) {
+           if (i === j) continue;
+           
+           const planet_j = planets[j];
+           const dx = planet_j.x - planet_i.x;
+           const dy = planet_j.y - planet_i.y;
+           const r_squared = dx * dx + dy * dy;
+           
+           if (r_squared > 0.1) {
+             const r = Math.sqrt(r_squared);
+             const cutoffDistance = planet_i.radius * 4;
+             
+             if (r > cutoffDistance) {
+               const force = G_normalized * calculateForce(r, forceLaw);
+               const force_over_r = force / r;
+               
+               fx += dx * force_over_r;
+               fy += dy * force_over_r;
+             }
+           }
+         }
+         forces.push({ fx, fy });
+       }
+       return forces;
+     }
+     
+     // Update planet physics using Forest-Ruth (4th order) or Leapfrog (2nd order)
+     function updatePlanets(universe, dt) {
+       const { planets, forceLaw } = universe;
+       const dt_scaled = dt * timeScale;
       
       // Pre-calculate normalization factor once
       let normalizationFactor = 1.0;
@@ -432,80 +471,73 @@
         }
       }
       
-      // Pre-calculate common values
-      const G_normalized = G * normalizationFactor;
-      
-      // Step 1: Update velocities by half step
-      for (let i = 0; i < planets.length; i++) {
-        let fx = 0, fy = 0;
-        const planet_i = planets[i];
-        const mass_i = planet_i.mass;
-        
-        for (let j = 0; j < planets.length; j++) {
-          if (i === j) continue;
-          
-          const planet_j = planets[j];
-          const dx = planet_j.x - planet_i.x;
-          const dy = planet_j.y - planet_i.y;
-          const r_squared = dx * dx + dy * dy;
-          
-          if (r_squared > 0.1) {
-            const r = Math.sqrt(r_squared);
-            const cutoffDistance = planet_i.radius * 4;
-            
-            if (r > cutoffDistance) {
-              const force = G_normalized * calculateForce(r, forceLaw);
-              const force_over_r = force / r;
-              
-              fx += dx * force_over_r;
-              fy += dy * force_over_r;
-            }
-          }
-        }
-        
-        // Update velocities by half step (F = ma)
-        planet_i.vx += (fx / mass_i) * dt_half;
-        planet_i.vy += (fy / mass_i) * dt_half;
-      }
-      
-      // Step 2: Update positions by full step
-      for (let planet of planets) {
-        planet.x += planet.vx * dt_scaled;
-        planet.y += planet.vy * dt_scaled;
-      }
-      
-      // Step 3: Update velocities by another half step
-      for (let i = 0; i < planets.length; i++) {
-        let fx = 0, fy = 0;
-        const planet_i = planets[i];
-        const mass_i = planet_i.mass;
-        
-        for (let j = 0; j < planets.length; j++) {
-          if (i === j) continue;
-          
-          const planet_j = planets[j];
-          const dx = planet_j.x - planet_i.x;
-          const dy = planet_j.y - planet_i.y;
-          const r_squared = dx * dx + dy * dy;
-          
-          if (r_squared > 0.1) {
-            const r = Math.sqrt(r_squared);
-            const cutoffDistance = planet_i.radius * 4;
-            
-            if (r > cutoffDistance) {
-              const force = G_normalized * calculateForce(r, forceLaw);
-              const force_over_r = force / r;
-              
-              fx += dx * force_over_r;
-              fy += dy * force_over_r;
-            }
-          }
-        }
-        
-        // Update velocities by half step (F = ma)
-        planet_i.vx += (fx / mass_i) * dt_half;
-        planet_i.vy += (fy / mass_i) * dt_half;
-      }
+             // Pre-calculate common values
+       const G_normalized = G * normalizationFactor;
+       
+       if (useForestRuth) {
+         // Forest-Ruth 4th order symplectic integrator
+         // Step 1: v += w1 * dt * F(x)
+         const forces1 = calculateForces(planets, forceLaw, G_normalized);
+         for (let i = 0; i < planets.length; i++) {
+           planets[i].vx += (forces1[i].fx / planets[i].mass) * w1 * dt_scaled;
+           planets[i].vy += (forces1[i].fy / planets[i].mass) * w1 * dt_scaled;
+         }
+         
+         // Step 2: x += w1 * dt * v
+         for (let planet of planets) {
+           planet.x += planet.vx * w1 * dt_scaled;
+           planet.y += planet.vy * w1 * dt_scaled;
+         }
+         
+         // Step 3: v += w0 * dt * F(x)
+         const forces2 = calculateForces(planets, forceLaw, G_normalized);
+         for (let i = 0; i < planets.length; i++) {
+           planets[i].vx += (forces2[i].fx / planets[i].mass) * w0 * dt_scaled;
+           planets[i].vy += (forces2[i].fy / planets[i].mass) * w0 * dt_scaled;
+         }
+         
+         // Step 4: x += w0 * dt * v
+         for (let planet of planets) {
+           planet.x += planet.vx * w0 * dt_scaled;
+           planet.y += planet.vy * w0 * dt_scaled;
+         }
+         
+         // Step 5: v += w1 * dt * F(x)
+         const forces3 = calculateForces(planets, forceLaw, G_normalized);
+         for (let i = 0; i < planets.length; i++) {
+           planets[i].vx += (forces3[i].fx / planets[i].mass) * w1 * dt_scaled;
+           planets[i].vy += (forces3[i].fy / planets[i].mass) * w1 * dt_scaled;
+         }
+         
+         // Step 6: x += w1 * dt * v
+         for (let planet of planets) {
+           planet.x += planet.vx * w1 * dt_scaled;
+           planet.y += planet.vy * w1 * dt_scaled;
+         }
+       } else {
+         // Original Leapfrog 2nd order symplectic integrator
+         const dt_half = dt_scaled * 0.5;
+         
+         // Step 1: Update velocities by half step
+         const forces1 = calculateForces(planets, forceLaw, G_normalized);
+         for (let i = 0; i < planets.length; i++) {
+           planets[i].vx += (forces1[i].fx / planets[i].mass) * dt_half;
+           planets[i].vy += (forces1[i].fy / planets[i].mass) * dt_half;
+         }
+         
+         // Step 2: Update positions by full step
+         for (let planet of planets) {
+           planet.x += planet.vx * dt_scaled;
+           planet.y += planet.vy * dt_scaled;
+         }
+         
+         // Step 3: Update velocities by another half step
+         const forces2 = calculateForces(planets, forceLaw, G_normalized);
+         for (let i = 0; i < planets.length; i++) {
+           planets[i].vx += (forces2[i].fx / planets[i].mass) * dt_half;
+           planets[i].vy += (forces2[i].fy / planets[i].mass) * dt_half;
+         }
+       }
     }
     
     // Draw planets
