@@ -148,10 +148,44 @@
       position: absolute;
       border-radius: 50%;
       box-shadow: 0 0 10px currentColor;
-    }
-  </style>
-</head>
-<body>
+          }
+      
+      .copyright {
+        text-align: center;
+        color: #6666aa;
+        font-size: 12px;
+        margin-top: 20px;
+        font-family: 'Arial', sans-serif;
+      }
+      
+      .copyright a {
+        color: #8888cc;
+        text-decoration: none;
+      }
+      
+             .copyright a:hover {
+         text-decoration: underline;
+       }
+       
+
+      
+      .copyright {
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        color: #6666aa;
+        font-size: 12px;
+        font-family: 'Arial', sans-serif;
+        z-index: 100;
+        background: rgba(0,0,0,0.7);
+        padding: 5px 10px;
+        border-radius: 5px;
+      }
+   </style>
+ </head>
+ <body>
   <div id="controls">
     <button id="minimizeBtn" onclick="toggleControls()">-</button>
     <h3>Universe Controls</h3>
@@ -161,16 +195,17 @@
       <div class="control-column">
         <div class="control-group">
           <label>Force Law:</label>
-          <select id="forceLaw">
-            <option value="1/r3">1/r³ (Strong Decay)</option>
-            <option value="1/r2">1/r² (Gravity-like)</option>
-            <option value="1/r">1/r (Coulomb-like)</option>
-            <option value="log" selected>log(r) (Logarithmic)</option>
-            <option value="sqrt">√r (Square Root)</option>
-            <option value="r">r (Linear)</option>
-            <option value="r2">r² (Quadratic)</option>
-            <option value="r3">r³ (Cubic)</option>
-          </select>
+                     <select id="forceLaw">
+                            <option value="1/r3">1/r³</option>
+               <option value="1/r2">1/r²</option>
+               <option value="1/r">1/r</option>
+               <option value="log" selected>log(r)</option>
+               <option value="constant">1</option>
+               <option value="sqrt">√r</option>
+               <option value="r">r</option>
+               <option value="r2">r²</option>
+               <option value="r3">r³</option>
+           </select>
         </div>
         
         <div class="control-group">
@@ -202,6 +237,10 @@
        <button class="button" onclick="toggleTrajectories()">Trails</button>
      </div>
    </div>
+   </div>
+   
+   <div class="copyright">
+     © Moritz Zaiss 2025, <a href="https://github.com/mzaiss/galactic_forces" target="_blank">https://github.com/mzaiss/galactic_forces</a> | <a href="matrix.html">Matrix View</a>
    </div>
   
 
@@ -293,6 +332,8 @@
            return r;
          case 'log':
            return Math.log(r + 1);
+         case 'constant':
+           return 1;
          case 'r2':
            return r * r;
          case 'r3':

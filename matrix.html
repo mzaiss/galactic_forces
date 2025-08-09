@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Physics Universe - All Force Laws</title>
+  <style>
+         body {
+       margin: 0;
+       padding: 10px;
+       background: #000011;
+       font-family: 'Arial', sans-serif;
+       color: white;
+       overflow-x: auto;
+     }
+     
+     #controls {
+       position: fixed;
+       top: 10px;
+       left: 10px;
+       right: 10px;
+       background: rgba(0,0,0,0.9);
+       padding: 15px;
+       border-radius: 10px;
+       border: 2px solid #4444ff;
+       z-index: 100;
+       max-height: 60vh;
+       overflow-y: auto;
+       font-size: 14px;
+       transition: all 0.3s ease;
+     }
+     
+     #controls.minimized {
+       max-height: 50px;
+       overflow: hidden;
+     }
+     
+     #controls.minimized .control-content {
+       display: none;
+     }
+     
+     #minimizeBtn {
+       position: absolute;
+       top: 10px;
+       right: 10px;
+       background: #4444ff;
+       border: none;
+       color: white;
+       padding: 5px 10px;
+       border-radius: 3px;
+       cursor: pointer;
+       font-size: 12px;
+     }
+     
+     .control-group {
+       margin: 8px 0;
+       display: flex;
+       flex-direction: column;
+     }
+     
+     .control-row {
+       display: flex;
+       gap: 15px;
+       align-items: flex-start;
+     }
+     
+     .control-column {
+       flex: 1;
+       display: flex;
+       flex-direction: column;
+       gap: 8px;
+     }
+     
+     .button-row {
+       display: flex;
+       flex-wrap: wrap;
+       gap: 5px;
+     }
+     
+     label {
+       display: block;
+       margin-bottom: 5px;
+       color: #88aaff;
+       font-weight: bold;
+     }
+     
+     select, input {
+       width: 100%;
+       max-width: 200px;
+       padding: 8px;
+       border-radius: 5px;
+       border: 1px solid #4444ff;
+       background: #001122;
+       color: white;
+       font-size: 14px;
+     }
+     
+     .button {
+       background: linear-gradient(45deg, #4444ff, #8888ff);
+       border: none;
+       color: white;
+       padding: 10px 20px;
+       border-radius: 5px;
+       cursor: pointer;
+       margin: 5px;
+       font-weight: bold;
+     }
+     
+     .button:hover {
+       background: linear-gradient(45deg, #6666ff, #aaaaff);
+     }
+     
+     @media (max-width: 768px) {
+       #controls {
+         top: 5px;
+         left: 5px;
+         right: 5px;
+         padding: 10px;
+         font-size: 12px;
+         max-height: 50vh;
+       }
+       
+       .control-group {
+         margin: 8px 0;
+       }
+       
+       label {
+         font-size: 11px;
+         margin-bottom: 3px;
+       }
+       
+       select, input {
+         width: 100%;
+         padding: 6px;
+         font-size: 12px;
+       }
+       
+       .button {
+         padding: 8px 12px;
+         font-size: 11px;
+         margin: 3px;
+       }
+     }
+    
+                                                                               .grid-container {
+         display: grid;
+         grid-template-columns: repeat(3, 1fr);
+         gap: 0px;
+         max-width: 1200px;
+         margin: 0 auto;
+         border: 1px solid #222244;
+         padding: 0px;
+       }
+     
+                                                                                       .universe-cell {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background: rgba(0,0,0,0.3);
+          border: 1px solid #222244;
+          padding: 2px;
+          aspect-ratio: 1;
+        }
+     
+     .universe-title {
+       font-size: 12px;
+       font-weight: bold;
+       color: #88aaff;
+       margin-bottom: 5px;
+       text-align: center;
+     }
+     
+           .universe-canvas {
+        /* No border radius */
+      }
+    
+         @media (max-width: 768px) {
+       .grid-container {
+         grid-template-columns: repeat(2, 1fr);
+         gap: 0px;
+       }
+       
+       .universe-title {
+         font-size: 10px;
+       }
+           }
+      
+      .copyright {
+        text-align: center;
+        color: #6666aa;
+        font-size: 12px;
+        margin-top: 20px;
+        font-family: 'Arial', sans-serif;
+      }
+      
+      .copyright a {
+        color: #8888cc;
+        text-decoration: none;
+      }
+      
+      .copyright a:hover {
+        text-decoration: underline;
+      }
+      
+      
+   </style>
+ </head>
+ <body>
+   <div id="controls">
+     <button id="minimizeBtn" onclick="toggleControls()">-</button>
+     <h3>Matrix Controls</h3>
+     <div class="control-content">
+       <div class="control-row">
+         <div class="control-column">
+           <div class="control-group">
+             <label>Force Constant (G):</label>
+             <input type="range" id="gravityConst" min="0.1" max="5" step="0.1" value="1">
+             <span id="gravityValue">1.0</span>
+           </div>
+         </div>
+         
+                   <div class="control-column">
+            <div class="control-group">
+              <label>Time Scale:</label>
+              <input type="range" id="timeScale" min="0.1" max="30" step="0.1" value="1">
+              <span id="timeValue">1.0</span>
+            </div>
+            
+            <div class="control-group">
+              <label>Initial Angular Momentum:</label>
+              <input type="range" id="angularSpeed" min="0" max="10" step="0.1" value="1.0">
+              <span id="angularValue">1.0</span>
+            </div>
+            
+            <div class="control-group">
+              <label>Number of Planets:</label>
+              <input type="range" id="planetCount" min="4" max="20" step="1" value="12">
+              <span id="planetCountValue">12</span>
+            </div>
+          </div>
+       </div>
+       
+       <div class="button-row">
+         <button class="button" onclick="resetAllUniverses()">Reset All</button>
+         <button class="button" onclick="togglePause()">Pause All</button>
+         <button class="button" onclick="randomizeAll()">Random All</button>
+       </div>
+     </div>
+   </div>
+   
+   <div class="grid-container">
+         <div class="universe-cell">
+       <div class="universe-title">1/r³</div>
+       <canvas class="universe-canvas" id="canvas1"></canvas>
+     </div>
+          <div class="universe-cell">
+        <div class="universe-title">1/r²</div>
+        <canvas class="universe-canvas" id="canvas2"></canvas>
+      </div>
+          <div class="universe-cell">
+        <div class="universe-title">1/r</div>
+        <canvas class="universe-canvas" id="canvas3"></canvas>
+      </div>
+           <div class="universe-cell">
+        <div class="universe-title">1</div>
+        <canvas class="universe-canvas" id="canvas4"></canvas>
+      </div>
+                         <div class="universe-cell">
+          <div class="universe-title">log(r)</div>
+          <canvas class="universe-canvas" id="canvas5"></canvas>
+        </div>
+        <div class="universe-cell">
+          <div class="universe-title">√r</div>
+          <canvas class="universe-canvas" id="canvas6"></canvas>
+        </div>
+        <div class="universe-cell">
+          <div class="universe-title">r</div>
+          <canvas class="universe-canvas" id="canvas7"></canvas>
+        </div>
+     <div class="universe-cell">
+       <div class="universe-title">r²</div>
+       <canvas class="universe-canvas" id="canvas8"></canvas>
+     </div>
+     <div class="universe-cell">
+       <div class="universe-title">r³</div>
+       <canvas class="universe-canvas" id="canvas9"></canvas>
+            </div>
+   </div>
+   
+   <div class="copyright">
+     © Moritz Zaiss 2025, <a href="https://github.com/mzaiss/galactic_forces" target="_blank">https://github.com/mzaiss/galactic_forces</a> | <a href="index.html">Single View</a>
+   </div>
+ 
+       <script>
+                    // Global parameters (affect all universes)
+       let G = 1.0;
+       let timeScale = 1.0;
+       const planetMass = 1.0;
+               let angularSpeed = 1.0;
+        let isPaused = false;
+        let gridSize = 12; // Smaller grid for matrix view
+        const planetSpacing = 20;
+    
+                                       // Force laws
+       const forceLaws = [
+         '1/r3', '1/r2', '1/r',
+         'constant', 'log', 'sqrt',
+         'r', 'r2', 'r3'
+       ];
+    
+    // Universe data
+    const universes = [];
+    
+    // Calculate force based on selected law
+    function calculateForce(r, forceLaw) {
+      if (r < 0.1) r = 0.1; // Prevent division by zero
+      
+      switch(forceLaw) {
+        case '1/r3':
+          return 1 / (r * r * r);
+        case '1/r':
+          return 1 / r;
+        case '1/r2':
+          return 1 / (r * r);
+        case 'r':
+          return r;
+        case 'log':
+          return Math.log(r + 1);
+        case 'constant':
+          return 1;
+        case 'r2':
+          return r * r;
+        case 'r3':
+          return r * r * r;
+        case 'sqrt':
+          return Math.sqrt(r);
+        default:
+          return 1 / r;
+      }
+    }
+    
+    // Initialize a universe
+    function initializeUniverse(universeIndex) {
+      const canvas = document.getElementById(`canvas${universeIndex + 1}`);
+      const ctx = canvas.getContext('2d');
+      const forceLaw = forceLaws[universeIndex];
+      
+             // Set canvas size
+       canvas.width = 250;
+       canvas.height = 250;
+      
+             // Initialize planets
+       const planets = [];
+       const startX = (canvas.width - (gridSize - 1) * planetSpacing) / 2;
+       const startY = (canvas.height - (gridSize - 1) * planetSpacing) / 2;
+       
+       // Calculate center of the universe (perfectly centered)
+       const centerX = canvas.width / 2;
+       const centerY = canvas.height / 2;
+      
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+          const x = startX + i * planetSpacing;
+          const y = startY + j * planetSpacing;
+          
+          // Calculate distance from center
+          const dx = x - centerX;
+          const dy = y - centerY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          // Add angular momentum (tangential velocity)
+          let vx = 0, vy = 0;
+          
+          if (distance > 0) {
+            // Perpendicular velocity for rotation (tangential)
+            vx = (-dy / distance) * angularSpeed * distance * 0.01;
+            vy = (dx / distance) * angularSpeed * distance * 0.01;
+          }
+          
+          // Calculate color based on initial distance from center (radial symmetry)
+          const maxDistance = Math.sqrt((canvas.width/2) * (canvas.width/2) + (canvas.height/2) * (canvas.height/2));
+          const initialDistance = distance;
+          const colorHue = (initialDistance / maxDistance) * 360;
+          const colorSaturation = 100;
+          const colorLightness = 50 - (initialDistance / maxDistance) * 20;
+          
+          planets.push({
+            x: x,
+            y: y,
+            vx: vx,
+            vy: vy,
+            mass: planetMass,
+            radius: 2, // Smaller radius for matrix view
+            initialDistance: initialDistance,
+            color: `hsl(${colorHue}, ${colorSaturation}%, ${colorLightness}%)`
+          });
+        }
+      }
+      
+      return { canvas, ctx, planets, forceLaw };
+    }
+    
+    // Update planet physics using Leapfrog algorithm
+    function updatePlanets(universe, dt) {
+      const { planets, forceLaw } = universe;
+      const dt_scaled = dt * timeScale;
+      const dt_half = dt_scaled * 0.5;
+      
+      // Pre-calculate normalization factor once
+      let normalizationFactor = 1.0;
+      if (planets.length > 1) {
+        let totalForceOnFirst = 0;
+        for (let j = 1; j < planets.length; j++) {
+          const dx = planets[j].x - planets[0].x;
+          const dy = planets[j].y - planets[0].y;
+          const r = Math.sqrt(dx * dx + dy * dy);
+          if (r > 0.1) {
+            const cutoffDistance = planets[0].radius * 4;
+            if (r > cutoffDistance) {
+              totalForceOnFirst += 1.0 * calculateForce(r, forceLaw);
+            }
+          }
+        }
+        if (totalForceOnFirst > 0) {
+          normalizationFactor = 1.0 / totalForceOnFirst;
+        }
+      }
+      
+      // Pre-calculate common values
+      const G_normalized = G * normalizationFactor;
+      
+      // Step 1: Update velocities by half step
+      for (let i = 0; i < planets.length; i++) {
+        let fx = 0, fy = 0;
+        const planet_i = planets[i];
+        const mass_i = planet_i.mass;
+        
+        for (let j = 0; j < planets.length; j++) {
+          if (i === j) continue;
+          
+          const planet_j = planets[j];
+          const dx = planet_j.x - planet_i.x;
+          const dy = planet_j.y - planet_i.y;
+          const r_squared = dx * dx + dy * dy;
+          
+          if (r_squared > 0.1) {
+            const r = Math.sqrt(r_squared);
+            const cutoffDistance = planet_i.radius * 4;
+            
+            if (r > cutoffDistance) {
+              const force = G_normalized * calculateForce(r, forceLaw);
+              const force_over_r = force / r;
+              
+              fx += dx * force_over_r;
+              fy += dy * force_over_r;
+            }
+          }
+        }
+        
+        // Update velocities by half step (F = ma)
+        planet_i.vx += (fx / mass_i) * dt_half;
+        planet_i.vy += (fy / mass_i) * dt_half;
+      }
+      
+      // Step 2: Update positions by full step
+      for (let planet of planets) {
+        planet.x += planet.vx * dt_scaled;
+        planet.y += planet.vy * dt_scaled;
+      }
+      
+      // Step 3: Update velocities by another half step
+      for (let i = 0; i < planets.length; i++) {
+        let fx = 0, fy = 0;
+        const planet_i = planets[i];
+        const mass_i = planet_i.mass;
+        
+        for (let j = 0; j < planets.length; j++) {
+          if (i === j) continue;
+          
+          const planet_j = planets[j];
+          const dx = planet_j.x - planet_i.x;
+          const dy = planet_j.y - planet_i.y;
+          const r_squared = dx * dx + dy * dy;
+          
+          if (r_squared > 0.1) {
+            const r = Math.sqrt(r_squared);
+            const cutoffDistance = planet_i.radius * 4;
+            
+            if (r > cutoffDistance) {
+              const force = G_normalized * calculateForce(r, forceLaw);
+              const force_over_r = force / r;
+              
+              fx += dx * force_over_r;
+              fy += dy * force_over_r;
+            }
+          }
+        }
+        
+        // Update velocities by half step (F = ma)
+        planet_i.vx += (fx / mass_i) * dt_half;
+        planet_i.vy += (fy / mass_i) * dt_half;
+      }
+    }
+    
+    // Draw planets
+    function drawPlanets(universe) {
+      const { ctx, planets } = universe;
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      
+      // Draw each planet
+      for (let planet of planets) {
+        ctx.fillStyle = planet.color;
+        ctx.beginPath();
+        ctx.arc(planet.x, planet.y, planet.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    // Initialize all universes
+    for (let i = 0; i < 9; i++) {
+      universes.push(initializeUniverse(i));
+    }
+    
+         // Animation loop
+     function animate() {
+       const dt = 0.016; // ~60 FPS
+       
+       // Update and draw all universes (only if not paused)
+       if (!isPaused) {
+         for (let universe of universes) {
+           updatePlanets(universe, dt);
+         }
+       }
+       
+       // Always draw (even when paused)
+       for (let universe of universes) {
+         drawPlanets(universe);
+       }
+       
+       requestAnimationFrame(animate);
+     }
+    
+         // Control functions
+     function toggleControls() {
+       const controls = document.getElementById('controls');
+       const btn = document.getElementById('minimizeBtn');
+       controls.classList.toggle('minimized');
+       btn.textContent = controls.classList.contains('minimized') ? '+' : '-';
+     }
+     
+     function togglePause() {
+       isPaused = !isPaused;
+     }
+     
+     function resetAllUniverses() {
+       // Reinitialize all universes with current global parameters
+       universes.length = 0;
+       for (let i = 0; i < 9; i++) {
+         universes.push(initializeUniverse(i));
+       }
+     }
+     
+     function randomizeAll() {
+       // Randomize positions and velocities for all universes
+       for (let universe of universes) {
+         const { planets } = universe;
+         const startX = (universe.canvas.width - (gridSize - 1) * planetSpacing) / 2;
+         const startY = (universe.canvas.height - (gridSize - 1) * planetSpacing) / 2;
+         const endX = startX + (gridSize - 1) * planetSpacing;
+         const endY = startY + (gridSize - 1) * planetSpacing;
+         
+         for (let planet of planets) {
+           planet.x = startX + Math.random() * (endX - startX);
+           planet.y = startY + Math.random() * (endY - startY);
+           planet.vx = (Math.random() - 0.5) * 2;
+           planet.vy = (Math.random() - 0.5) * 2;
+         }
+       }
+     }
+     
+     // Event listeners for global controls
+     document.getElementById('gravityConst').addEventListener('input', (e) => {
+       G = parseFloat(e.target.value);
+       document.getElementById('gravityValue').textContent = G.toFixed(1);
+     });
+     
+     document.getElementById('timeScale').addEventListener('input', (e) => {
+       timeScale = parseFloat(e.target.value);
+       document.getElementById('timeValue').textContent = timeScale.toFixed(1);
+     });
+     
+           document.getElementById('angularSpeed').addEventListener('input', (e) => {
+        angularSpeed = parseFloat(e.target.value);
+        document.getElementById('angularValue').textContent = angularSpeed.toFixed(1);
+      });
+      
+      document.getElementById('planetCount').addEventListener('input', (e) => {
+        gridSize = parseInt(e.target.value);
+        document.getElementById('planetCountValue').textContent = gridSize;
+      });
+     
+     // Start animation
+     animate();
+   </script>
+</body>
+</html> 
